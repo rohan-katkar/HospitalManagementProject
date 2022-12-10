@@ -1,0 +1,15 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@model Department
+@{
+    ViewData["Title"] = "Drop Down Page";
+}
+
+<div class="mb-3">
+    <label asp-for="DepartmentId"></label>
+    @*<select asp-for="DepartmentName" asp-items="@(new SelectList(ViewBag.message,"DepartmentId","DepartmentName"))" />*@
+    <span asp-validation-for="DepartmentId" class="text-danger"></span>
+
+    @Html.DropDownList("DepartmentName", (new SelectList(ViewBag.message,"DepartmentId","DepartmentName")), new { @class="form-control" })
+</div>

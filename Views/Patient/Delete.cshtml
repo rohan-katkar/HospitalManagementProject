@@ -1,0 +1,50 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@model Patient
+@{
+    ViewData["Title"] = "Delete a Patient";
+}
+
+<form method="post" asp-action="Edit">
+    <div class="border p-3 mt-4">
+        <div class="row pb-2">
+            <h2 class="text-primary">Delete Patient Information</h2>
+            <hr />
+        </div>
+        <div asp-validation-summary="All"></div>
+        <div class="mb-3">
+            <label asp-for="PatientName"></label>
+            <input asp-for="PatientName" class="form-control" readonly />
+            <span asp-validation-for="PatientName" class="text-danger"></span>
+        </div>
+        <div class="mb-3">
+            <label asp-for="PrimaryContact"></label>
+            <input asp-for="PrimaryContact" class="form-control" readonly />
+            <span asp-validation-for="PrimaryContact" class="text-danger"></span>
+        </div>
+        <div class="mb-3">
+            <label asp-for="SecondaryContact"></label>
+            <input asp-for="SecondaryContact" class="form-control" readonly />
+            <span asp-validation-for="SecondaryContact" class="text-danger"></span>
+        </div>
+        <div class="mb-3">
+            <label asp-for="Prognosis"></label>
+            @*<textarea asp-for="Prognosis" class="form-control" />*@
+            @Html.TextAreaFor(patient => patient.Prognosis, 4, 12, new { @class="form-control", @readonly="true" })
+            <span asp-validation-for="Prognosis" class="text-danger"></span>
+        </div>
+        <div class="mb-3">
+            <label asp-for="Doctor"></label>
+            @Html.DropDownListFor(patient => patient.DoctorRefId,
+                                    new SelectList(ViewBag.message, "Id", "DoctorName"),
+                                    "---Select Doctor---",
+                                    new { @class = "form-control", @readonly="true"})
+            <span asp-validation-for="Doctor" class="text-danger"></span>
+        </div>
+        <button type="submit" class="btn btn-primary" style="width:150px">Update</button>
+        <a asp-controller="Patient" asp-action="Index" class="btn btn-secondary" style="width:150px">
+            Back to List
+        </a>
+    </div>
+</form>

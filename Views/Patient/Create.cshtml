@@ -1,0 +1,68 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@model Patient
+@{
+    ViewData["Title"] = "Add new Patient";
+}
+
+<form method="post">
+    <div class="border p-3 mt-4">
+        <div class="row pb-2">
+            <h2 class="text-primary">Add Patient</h2>
+            <hr />
+        </div>
+        <div asp-validation-summary="All"></div>
+        @*<div class="mb-3">
+        <label asp-for="DepartmentId"></label>
+        <input asp-for="DepartmentId" class="form-control" />
+        <span asp-validation-for="DepartmentId" class="text-danger"></span>
+        </div>*@
+        <div class="mb-3">
+            @*@Html.LabelFor(model => model.Doctor.DoctorName)
+            @Html.EditorFor(model => model.Doctor.DoctorName)*@
+
+            <label asp-for="PatientName"></label>
+            <input asp-for="PatientName" class="form-control" />
+            <span asp-validation-for="PatientName" class="text-danger"></span>
+        </div>
+        <div class="mb-3">
+            @*@Html.LabelFor(model => model.Doctor.Contact)
+            @Html.EditorFor(model => model.Doctor.Contact)*@
+
+            <label asp-for="PrimaryContact"></label>
+            <input asp-for="PrimaryContact" class="form-control" />
+            <span asp-validation-for="PrimaryContact" class="text-danger"></span>
+        </div>
+        <div class="mb-3">
+            @*@Html.LabelFor(model => model.Doctor.Contact)
+            @Html.EditorFor(model => model.Doctor.Contact)*@
+
+            <label asp-for="SecondaryContact"></label>
+            <input asp-for="SecondaryContact" class="form-control" />
+            <span asp-validation-for="SecondaryContact" class="text-danger"></span>
+        </div>
+        <div class="mb-3">
+            <label asp-for="Prognosis"></label>
+            @Html.TextAreaFor(patient => patient.Prognosis, new { @class="form-control"})
+            @*<input asp-for="Prognosis" class="form-control" />*@
+            <span asp-validation-for="Prognosis" class="text-danger"></span>
+        </div>
+        <div class="mb-3">
+            @*@Html.LabelFor(model => model.Doctor.Department)
+            @Html.DropDownListFor(model => model.Doctor.Department, this.Model.Departments)*@
+
+            <label asp-for="Doctor"></label>
+            @Html.DropDownListFor(patient => patient.DoctorRefId,
+                                    new SelectList(ViewBag.message, "Id", "DoctorName"),
+                                    "---Select Doctor---",
+                                    new { @class="form-control"})
+            @*<select asp-for="Department" class="form-control" asp-items="@(new SelectList(ViewBag.message,"DepartmentId","DepartmentName"))"/>*@
+            <span asp-validation-for="Doctor" class="text-danger"></span>
+        </div>
+        <button type="submit" class="btn btn-primary" style="width:150px">Create</button>
+        <a asp-controller="Patient" asp-action="Index" class="btn btn-secondary" style="width:150px">
+            Back to List
+        </a>
+    </div>
+</form>

@@ -1,0 +1,39 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@model Doctor
+@{
+    ViewData["Title"] = "Delete a Doctor";
+}
+
+<form method="post" asp-action="Delete">
+    <div class="border p-3 mt-4">
+        <div class="row pb-2">
+            <h2 class="text-primary">Delete Doctor Information</h2>
+            <hr />
+        </div>
+        <div asp-validation-summary="All"></div>
+        <div class="mb-3">
+            <label asp-for="DoctorName"></label>
+            <input asp-for="DoctorName" class="form-control" readonly />
+            <span asp-validation-for="DoctorName" class="text-danger"></span>
+        </div>
+        <div class="mb-3">
+            <label asp-for="Contact"></label>
+            <input asp-for="Contact" class="form-control" readonly />
+            <span asp-validation-for="Contact" class="text-danger"></span>
+        </div>
+        <div class="mb-3">
+            <label asp-for="Department"></label>
+            @Html.DropDownListFor(doctor => doctor.DeptRefId,
+                                    new SelectList(ViewBag.message,"DepartmentId","DepartmentName"),
+                                    "---Select Department---",
+                                    new { @class="form-control", @readonly="true" })
+            <span asp-validation-for="Department" class="text-danger"></span>
+        </div>
+        <button type="submit" class="btn btn-primary" style="width:150px">Delete</button>
+        <a asp-controller="Doctor" asp-action="Index" class="btn btn-secondary" style="width:150px">
+            Back to List
+        </a>
+    </div>
+</form>

@@ -1,0 +1,52 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@model Doctor
+@{
+    ViewData["Title"] = "Add new doctor";
+}
+<form method="post">
+    <div class="border p-3 mt-4">
+        <div class="row pb-2">
+            <h2 class="text-primary">Add Doctor</h2>
+            <hr />
+        </div>
+        <div asp-validation-summary="All"></div>
+        @*<div class="mb-3">
+        <label asp-for="DepartmentId"></label>
+        <input asp-for="DepartmentId" class="form-control" />
+        <span asp-validation-for="DepartmentId" class="text-danger"></span>
+        </div>*@
+        <div class="mb-3">
+            @*@Html.LabelFor(model => model.Doctor.DoctorName)
+            @Html.EditorFor(model => model.Doctor.DoctorName)*@
+
+            <label asp-for="DoctorName"></label>
+            <input asp-for="DoctorName" class="form-control" />
+            <span asp-validation-for="DoctorName" class="text-danger"></span>
+        </div>
+        <div class="mb-3">
+            @*@Html.LabelFor(model => model.Doctor.Contact)
+            @Html.EditorFor(model => model.Doctor.Contact)*@
+
+            <label asp-for="Contact"></label>
+            <input asp-for="Contact" class="form-control" />
+            <span asp-validation-for="Contact" class="text-danger"></span>
+        </div>
+        <div class="mb-3">
+            @*@Html.LabelFor(model => model.Doctor.Department)
+            @Html.DropDownListFor(model => model.Doctor.Department, this.Model.Departments)*@
+
+            <label asp-for="Department"></label>
+            @Html.DropDownListFor(doctor => doctor.DeptRefId, 
+                                  new SelectList(ViewBag.message,"DepartmentId","DepartmentName"),
+                                  "---Select Department---")
+            @*<select asp-for="Department" class="form-control" asp-items="@(new SelectList(ViewBag.message,"DepartmentId","DepartmentName"))"/>*@
+            <span asp-validation-for="Department" class="text-danger"></span>
+        </div>
+        <button type="submit" class="btn btn-primary" style="width:150px">Create</button>
+        <a asp-controller="Doctor" asp-action="Index" class="btn btn-secondary" style="width:150px">
+            Back to List
+        </a>
+    </div>
+</form>
