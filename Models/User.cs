@@ -1,25 +1,11 @@
-﻿using System.ComponentModel;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+﻿using Microsoft.AspNetCore.Identity;
 
 namespace HospitalManagement.Models
 {
-    public class User
+    public class User : IdentityUser<int>
     {
-        [Key]
-        public int UserId { get; set; }
+        public string? FirstName { get; set; }
 
-        [Required]
-        [DisplayName("User name")]
-        public string UserName { get; set; }
-
-        [Required]
-        [DisplayName("Password")]
-        public string PasswordHash { get; set; }
-
-        [ForeignKey("UserRoleId")]
-        public int UserRoleId { get; set; }
-
-        public UserRole? UserRole { get; set; }
+        public string? LastName { get; set; }
     }
 }

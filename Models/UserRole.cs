@@ -1,15 +1,8 @@
-﻿using System.ComponentModel;
-using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.AspNetCore.Identity;
 
 namespace HospitalManagement.Models
 {
-    public class UserRole
+    public class UserRole : IdentityRole<int>
     {
-        [Key]
-        public int UserRoleId { get; set; }
-
-        [Required]
-        [DisplayName("User Role")]
-        public string UserRoleName { get; set; }
     }
 }
