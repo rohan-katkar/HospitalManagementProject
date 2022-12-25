@@ -11,11 +11,14 @@
 		<div class="col-6">
 			<h2 class="text-primary">Doctor List</h2>
 		</div>
-		<div class="col-6 text-end">
-			<a asp-controller="Doctor" asp-action="Create" class="btn btn-primary">
-				<i class="bi bi-plus-circle"></i> &nbsp; Add New Doctor
-			</a>
-		</div>
+		@if(User.IsInRole("Admin"))
+		{
+			<div class="col-6 text-end">
+				<a asp-controller="Doctor" asp-action="Create" class="btn btn-primary">
+					<i class="bi bi-plus-circle"></i> &nbsp; Add new Doctor
+				</a>
+			</div>
+		}
 	</div>
 
 	<table class="table table-bordered table-striped" style="width:100%">
@@ -50,18 +53,21 @@
 					<td width="25%">
 						@obj.Department.DepartmentName
 					</td>
-					<td>
-						<div class="w-75 btn-group" role="group">
-							<a asp-controller="Doctor" asp-action="Edit" asp-route-id="@obj.Id"
+					@if (User.IsInRole("Admin"))
+					{
+						<td>
+							<div class="w-75 btn-group" role="group">
+								<a asp-controller="Doctor" asp-action="Edit" asp-route-id="@obj.Id"
 								class="btn btn-primary mx-2"><i class="bi bi-pencil-square"></i>Edit</a>
-						</div>
-					</td>
-					<td>
-						<div class="w-75 btn-group" role="group">
-							<a asp-controller="Doctor" asp-action="Delete" asp-route-id="@obj.Id"
+							</div>
+						</td>
+						<td>
+							<div class="w-75 btn-group" role="group">
+								<a asp-controller="Doctor" asp-action="Delete" asp-route-id="@obj.Id"
 						   class="btn btn-primary mx-2"><i class="bi bi-trash"></i>Delete</a>
-						</div>
-					</td>
+							</div>
+						</td>
+					}
 				</tr>
 			}
 		</tbody>

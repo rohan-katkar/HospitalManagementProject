@@ -1,9 +1,11 @@
 ﻿using HospitalManagement.Data;
 using HospitalManagement.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace HospitalManagement.Controllers
 {
+    [Authorize(Roles = "Admin")]
     public class DepartmentController : Controller
     {
         private readonly ApplicationDbContext _db;
@@ -29,10 +31,6 @@ namespace HospitalManagement.Controllers
         [HttpPost]
         public IActionResult Create(Department deptObj)
         {
-            //if(deptObj.DepartmentId == 0)
-            //{
-            //    ModelState.AddModelError("CustomError", "Please select a value for Department");
-            //}
             if (ModelState.IsValid)
             {
                 _db.Departments.Add(deptObj);
@@ -42,18 +40,5 @@ namespace HospitalManagement.Controllers
             }
             return View();
         }
-
-        //GET
-        //public IActionResult DropDownPage()
-        //{
-        //    var deptList = _db.Departments.ToList();
-        //    //List<Department> deptList = new List<Department>();
-        //    //deptList = (from c in _db.Departments select c).ToList();
-        //    //deptList.Insert(0, new Department { DepartmentId = 0, DepartmentName = "--Select Department Name--" });
-
-        //    ViewBag.message = deptList;
-
-        //    return View();
-        //}
     }
 }

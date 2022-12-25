@@ -1,9 +1,11 @@
 ﻿using HospitalManagement.Data;
 using HospitalManagement.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace HospitalManagement.Controllers
 {
+    [Authorize(Roles = "Admin, Staff")]
     public class PatientController : Controller
     {
         private readonly ApplicationDbContext _db;

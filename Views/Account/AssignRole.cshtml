@@ -1,0 +1,55 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@model UserRoleMapping
+@{
+    ViewData["Title"] = "Update User Info";
+}
+
+<form method="post" asp-action="AssignRole">
+    <div class="border p-3 mt-4">
+        <div class="row pb-2">
+            <h2 class="text-primary">User Info</h2>
+            <hr />
+        </div>
+        <div>
+            @ViewBag.Message
+        </div>
+        <div asp-validation-summary="All"></div>
+        <div class="mb-3">
+            <label asp-for="user.UserName"></label>
+            <input asp-for="user.UserName" class="form-control" readonly />
+            <span asp-validation-for="user.UserName" class="text-danger"></span>
+        </div>
+        <div class="mb-3">
+            <label asp-for="user.FirstName"></label>
+            <input asp-for="user.FirstName" class="form-control" readonly />
+            <span asp-validation-for="user.FirstName" class="text-danger"></span>
+        </div>
+        <div class="mb-3">
+            <label asp-for="user.LastName"></label>
+            <input asp-for="user.LastName" class="form-control" readonly />
+            <span asp-validation-for="user.LastName" class="text-danger"></span>
+        </div>
+    </div>
+    <div>
+        <div class="row pb-2">
+            <h2 class="text-primary">Update User Role</h2>
+            <hr />
+        </div>
+
+        <div class="mb-3">
+            <label>ADMIN</label>
+            <input asp-for="role" type="radio" value="Admin" />
+        </div>
+        <div class="mb-3">
+            <label>STAFF</label>
+            <input asp-for="role" type="radio" value="Staff" />
+        </div>
+        
+        <button type="submit" class="btn btn-primary" style="width:150px">Update</button>
+        <a asp-controller="Account" asp-action="ShowAllUserDetails" class="btn btn-secondary" style="width:150px">
+            Back to List
+        </a>
+    </div>
+</form>

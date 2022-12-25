@@ -1,5 +1,6 @@
 ﻿using HospitalManagement.Data;
 using HospitalManagement.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace HospitalManagement.Controllers
@@ -13,6 +14,7 @@ namespace HospitalManagement.Controllers
             _db = db;
         }
 
+        [Authorize(Roles = "Admin, Staff")]
         public IActionResult Index()
         {
             var doctorList = _db.Doctors.ToList();
@@ -26,6 +28,7 @@ namespace HospitalManagement.Controllers
         }
 
         //GET
+        [Authorize(Roles = "Admin")]
         public IActionResult Create()
         {
             var dept = _db.Departments.ToList();
@@ -36,6 +39,7 @@ namespace HospitalManagement.Controllers
 
         //POST
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         public IActionResult Create(Doctor doctorObj)
         {
             //var deptList = _db.Departments.Find(doctorObj.Department.DepartmentId);
@@ -54,6 +58,7 @@ namespace HospitalManagement.Controllers
         }
 
         //GET
+        [Authorize(Roles = "Admin")]
         public IActionResult Edit(int? id)
         {
             if (id == null || id == 0) 
@@ -73,6 +78,7 @@ namespace HospitalManagement.Controllers
         //POST
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
         public IActionResult Edit(Doctor doctorObj)
         {
             if (ModelState.IsValid)
@@ -88,6 +94,7 @@ namespace HospitalManagement.Controllers
         }
 
         //GET
+        [Authorize(Roles = "Admin")]
         public IActionResult Delete(int? id)
         {
             if (id == null || id == 0) 
@@ -106,6 +113,7 @@ namespace HospitalManagement.Controllers
         //POST
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
         public IActionResult Delete(Doctor doctorObj)
         {
             /*if (catObj.Name == catObj.DisplayOrder.ToString())

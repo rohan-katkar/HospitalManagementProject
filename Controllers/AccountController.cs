@@ -1,4 +1,5 @@
 ﻿using HospitalManagement.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System.Text;
@@ -34,20 +35,20 @@ namespace HospitalManagement.Controllers
                 var UserFromDb = await userManager.FindByEmailAsync(user.Email);
                 if(UserFromDb == null)
                 {
+                    // Comment below line if not required
                     user.EmailConfirmed = true;
+
                     IdentityResult result = await userManager.CreateAsync(user, user.PasswordHash);
                     if (result.Succeeded)
                         ViewBag.Message = "User created successfully";
                     else
                     {
-                        StringBuilder sb = new StringBuilder();
-                        foreach(var error in result.Errors)
-                        {
-                            sb.Append(error.Description);
-                            sb.Append('\n');
-                        }
-                        throw new Exception(sb.ToString());
+                        throw new Exception(GetErrorList(result.Errors));
                     }
+                }
+                else
+                {
+                    ViewBag.Message = "User already present";
                 }
             }
             catch(Exception ex)
@@ -106,6 +107,7 @@ namespace HospitalManagement.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> CreateRole(UserRole role)
         {
             try
@@ -118,13 +120,7 @@ namespace HospitalManagement.Controllers
                         ViewBag.Message = "Role created successfully";
                     else
                     {
-                        StringBuilder sb = new StringBuilder();
-                        foreach (var error in result.Errors)
-                        {
-                            sb.Append(error.Description);
-                            sb.Append('\n');
-                        }
-                        throw new Exception(sb.ToString());
+                        throw new Exception(GetErrorList(result.Errors));
                     }
                 }
             }
@@ -134,6 +130,84 @@ namespace HospitalManagement.Controllers
             }
             return View();
         }
+
+        // GET
+        public IActionResult ShowAllUserDetails()
+        {
+            var userList = userManager.Users.ToList();
+            return View(userList);
+        }
+
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> AssignRole(int? id)
+        {
+            if (id == null || id == 0)
+            {
+                return NotFound();
+            }
+
+            var userFromDb = await userManager.FindByIdAsync(id.ToString());
+            if (userFromDb == null)
+            {
+                return NotFound();
+            }
+
+            var userRoleMapping = new UserRoleMapping();
+            userRoleMapping.user = userFromDb;
+            var userRole = userManager.GetRolesAsync(userFromDb).Result;
+            if(userRole.Count != 0 && userRole != null)
+                userRoleMapping.role = userRole[0];
+
+            return View(userRoleMapping);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> AssignRole(UserRoleMapping userRoleMapping)
+        {
+            try
+            {
+                var userFromDb = await userManager.FindByNameAsync(userRoleMapping.user.UserName);
+                var roleFromDb = await roleManager.FindByNameAsync(userRoleMapping.role);
+                if (userFromDb != null && roleFromDb != null)
+                {
+                    var result = await userManager.AddToRoleAsync(userFromDb, roleFromDb.Name);
+                    if(result.Succeeded)
+                        ViewBag.Message = "Role change success!!";
+                    else
+                    {   
+                        throw new Exception(GetErrorList(result.Errors));
+                    }
+                }
+                else
+                {
+                    return NotFound();
+                }
+            }
+            catch (Exception ex)
+            {
+                ViewBag.Message = ex.Message;
+            }
+
+            return View();
+        }
         // Authorization Ends
+
+        public IActionResult AccessDenied()
+        {
+            return View();
+        }
+
+        public string GetErrorList(IEnumerable<IdentityError> errors)
+        {
+            StringBuilder sb = new StringBuilder();
+            foreach (var error in errors)
+            {
+                sb.Append(error.Description);
+                sb.Append("\r\n");
+            }
+            return sb.ToString();
+        }
     }
 }
