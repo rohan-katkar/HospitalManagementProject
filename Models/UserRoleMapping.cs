@@ -2,8 +2,9 @@
 {
     public class UserRoleMapping
     {
-        public User user { get; set; }
+        public User User { get; set; }
 
-        public string role { get; set; }
+        //public string role { get; set; }
+        public List<UserRoleViewModel> Roles { get; set; }
     }
 }

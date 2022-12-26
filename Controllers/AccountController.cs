@@ -36,6 +36,7 @@ namespace HospitalManagement.Controllers
                 if(UserFromDb == null)
                 {
                     // Comment below line if not required
+                    //user.Id = Guid.NewGuid().ToString();
                     user.EmailConfirmed = true;
 
                     IdentityResult result = await userManager.CreateAsync(user, user.PasswordHash);
@@ -79,8 +80,12 @@ namespace HospitalManagement.Controllers
                 }
                 else
                 {
+                    StringBuilder sb = new StringBuilder();
+                    sb.Append("Login Failed\r\n");
                     if (result.IsNotAllowed)
-                        throw new Exception("User is not allowed, please confirm your email");
+                        sb.Append("User is not allowed, please confirm your email");
+
+                    throw new Exception(sb.ToString());
                 }
             }
             catch(Exception ex)
@@ -107,7 +112,7 @@ namespace HospitalManagement.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Admin")]
+        //[Authorize(Roles = "Admin")]
         public async Task<IActionResult> CreateRole(UserRole role)
         {
             try
@@ -115,6 +120,7 @@ namespace HospitalManagement.Controllers
                 var roleFromDb = await roleManager.FindByNameAsync(role.Name);
                 if (roleFromDb == null)
                 {
+                    //role.Id = Guid.NewGuid().ToString();
                     var result = await roleManager.CreateAsync(role);
                     if(result.Succeeded)
                         ViewBag.Message = "Role created successfully";
@@ -138,59 +144,85 @@ namespace HospitalManagement.Controllers
             return View(userList);
         }
 
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> AssignRole(int? id)
+        //[Authorize(Roles = "Admin")]
+        public async Task<IActionResult> AssignRole(string id)
         {
-            if (id == null || id == 0)
+            ViewBag.userId = id;
+            if (string.IsNullOrEmpty(id))
             {
                 return NotFound();
             }
 
-            var userFromDb = await userManager.FindByIdAsync(id.ToString());
+            var userFromDb = await userManager.FindByIdAsync(id);
             if (userFromDb == null)
             {
                 return NotFound();
             }
 
             var userRoleMapping = new UserRoleMapping();
-            userRoleMapping.user = userFromDb;
+            userRoleMapping.User = userFromDb;
             var userRole = userManager.GetRolesAsync(userFromDb).Result;
-            if(userRole.Count != 0 && userRole != null)
-                userRoleMapping.role = userRole[0];
+            userRoleMapping.Roles = new List<UserRoleViewModel>();
+            foreach (var role in roleManager.Roles)
+            {
+                var userRoleViewModel = new UserRoleViewModel
+                {
+                    RoleId = role.Id,
+                    RoleName = role.Name
+                };
+
+                if (userRole.Contains(role.Name))
+                {
+                    userRoleViewModel.IsSelected = true;
+                }
+                else
+                {
+                    userRoleViewModel.IsSelected = false;
+                }
+
+                userRoleMapping.Roles.Add(userRoleViewModel);
+            }
 
             return View(userRoleMapping);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Admin")]
+        //[Authorize(Roles = "Admin")]
         public async Task<IActionResult> AssignRole(UserRoleMapping userRoleMapping)
         {
             try
             {
-                var userFromDb = await userManager.FindByNameAsync(userRoleMapping.user.UserName);
-                var roleFromDb = await roleManager.FindByNameAsync(userRoleMapping.role);
-                if (userFromDb != null && roleFromDb != null)
+                var userFromDb = await userManager.FindByNameAsync(userRoleMapping.User.UserName);
+
+                var roles = await userManager.GetRolesAsync(userFromDb);
+                var result = await userManager.RemoveFromRolesAsync(userFromDb, roles);
+
+                if (!result.Succeeded)
                 {
-                    var result = await userManager.AddToRoleAsync(userFromDb, roleFromDb.Name);
-                    if(result.Succeeded)
-                        ViewBag.Message = "Role change success!!";
-                    else
-                    {   
-                        throw new Exception(GetErrorList(result.Errors));
-                    }
+                    ViewBag.Message = "Could not remove the roles";
+                    return View(userRoleMapping);
                 }
-                else
+
+                result = await userManager.AddToRolesAsync(
+                    userFromDb,
+                    userRoleMapping.Roles.Where(x => x.IsSelected).Select(y => y.RoleName)
+                );
+
+                if (!result.Succeeded)
                 {
-                    return NotFound();
+                    ViewBag.Message = "Could not add the roles";
+                    return View(userRoleMapping);
                 }
+
+                ViewBag.Message = "Role update success!!";
             }
             catch (Exception ex)
             {
                 ViewBag.Message = ex.Message;
             }
 
-            return View();
+            return View(userRoleMapping);
         }
         // Authorization Ends
 

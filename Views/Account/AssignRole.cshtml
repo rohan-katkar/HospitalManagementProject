@@ -4,6 +4,7 @@
 @model UserRoleMapping
 @{
     ViewData["Title"] = "Update User Info";
+    var userId = ViewBag.userId;
 }
 
 <form method="post" asp-action="AssignRole">
@@ -17,19 +18,19 @@
         </div>
         <div asp-validation-summary="All"></div>
         <div class="mb-3">
-            <label asp-for="user.UserName"></label>
-            <input asp-for="user.UserName" class="form-control" readonly />
-            <span asp-validation-for="user.UserName" class="text-danger"></span>
+            <label asp-for="User.UserName"></label>
+            <input asp-for="User.UserName" class="form-control" readonly />
+            <span asp-validation-for="User.UserName" class="text-danger"></span>
         </div>
         <div class="mb-3">
-            <label asp-for="user.FirstName"></label>
-            <input asp-for="user.FirstName" class="form-control" readonly />
-            <span asp-validation-for="user.FirstName" class="text-danger"></span>
+            <label asp-for="User.FirstName"></label>
+            <input asp-for="User.FirstName" class="form-control" readonly />
+            <span asp-validation-for="User.FirstName" class="text-danger"></span>
         </div>
         <div class="mb-3">
-            <label asp-for="user.LastName"></label>
-            <input asp-for="user.LastName" class="form-control" readonly />
-            <span asp-validation-for="user.LastName" class="text-danger"></span>
+            <label asp-for="User.LastName"></label>
+            <input asp-for="User.LastName" class="form-control" readonly />
+            <span asp-validation-for="User.LastName" class="text-danger"></span>
         </div>
     </div>
     <div>
@@ -38,14 +39,25 @@
             <hr />
         </div>
 
-        <div class="mb-3">
+        @for(int i=0; i<Model.Roles.Count; i++){
+            <div class="mb-3">
+                <input type="hidden" asp-for="@Model.Roles[i].RoleId" />
+                <input type="hidden" asp-for="@Model.Roles[i].RoleName" />
+                <input asp-for="@Model.Roles[i].IsSelected"  />
+                <label asp-for="@Model.Roles[i].IsSelected">
+                    @Model.Roles[i].RoleName
+                </label>
+            </div>
+        }
+
+        @*<div class="mb-3">
             <label>ADMIN</label>
             <input asp-for="role" type="radio" value="Admin" />
         </div>
         <div class="mb-3">
             <label>STAFF</label>
             <input asp-for="role" type="radio" value="Staff" />
-        </div>
+        </div>*@
         
         <button type="submit" class="btn btn-primary" style="width:150px">Update</button>
         <a asp-controller="Account" asp-action="ShowAllUserDetails" class="btn btn-secondary" style="width:150px">
