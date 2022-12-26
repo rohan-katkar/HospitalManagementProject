@@ -144,7 +144,7 @@ namespace HospitalManagement.Controllers
             return View(userList);
         }
 
-        //[Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> AssignRole(string id)
         {
             ViewBag.userId = id;
