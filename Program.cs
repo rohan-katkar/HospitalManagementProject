@@ -11,9 +11,16 @@ builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseSqlSer
 ));
 
 builder.Services.AddIdentity<User, UserRole>(options =>
-{
-    options.SignIn.RequireConfirmedEmail = true;
-}).AddEntityFrameworkStores<ApplicationDbContext>();
+    {
+        options.SignIn.RequireConfirmedEmail = true;
+    }).AddEntityFrameworkStores<ApplicationDbContext>();
+
+builder.Services.AddAuthentication()
+    .AddGoogle(options =>
+    {
+        options.ClientId = "354281485127-n501qe5q00sh0qm4r7as910dt1hbdl72.apps.googleusercontent.com";
+        options.ClientSecret = "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";
+    });
 
 var app = builder.Build();
 

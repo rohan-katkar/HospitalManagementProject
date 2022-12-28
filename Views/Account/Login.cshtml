@@ -1,34 +1,73 @@
 ﻿@*
     For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 *@
-@model User
+@model LoginViewModel
 @{
     ViewData["Title"] = "Login";
 }
 
-<form method="post">
-    <div class="border p-3 mt-4">
+<div class="row">
+    <div class="border p-3 mt-4 col-md-6">
+        <form method="post">
+            <div class="row pb-2">
+                <h2 class="text-primary">Local Login</h2>
+                <hr />
+            </div>
+            <div class="row pb-2">
+                @ViewBag.Message
+            </div>
+            <div asp-validation-summary="All"></div>
+            <div class="mb-3">
+                <label asp-for="UserName"></label>
+                <input asp-for="UserName" class="form-control" />
+                <span asp-validation-for="UserName" class="text-danger"></span>
+            </div>
+            <div class="mb-3">
+                <label asp-for="Password"></label>
+                <input asp-for="Password" class="form-control" type="password" />
+                <span asp-validation-for="Password" class="text-danger"></span>
+            </div>
+            <button type="submit" class="btn btn-primary" style="width:150px">Login</button>
+            <a asp-controller="Home" asp-action="Index" class="btn btn-secondary" style="width:150px">
+                Back to Home
+            </a>
+        </form>
+    </div>
+    
+    <div class="border p-3 mt-4 col-md-6">
         <div class="row pb-2">
-            <h2 class="text-primary">Login User</h2>
+            <h2 class="text-primary">External Login</h2>
             <hr />
         </div>
-        <div class="row pb-2">
-            @ViewBag.Message
+        <div>
+            <div>
+                @if (string.IsNullOrEmpty(ViewBag.ErrorTitle)){
+                    @ViewBag.ErrorTitle
+                }
+                @if (string.IsNullOrEmpty(ViewBag.ErrorMessage)){
+                    @ViewBag.ErrorMessage
+                }
+            </div>
+            @{
+                if (Model.ExternalLogins.Count == 0){
+                    <div>
+                        No external logins configured.
+                    </div>
+                }
+                else
+                {
+                    <form method="post" asp-action="ExternalLogin" asp-route-returnUrl="@Model.ReturnUrl">
+                        <div>
+                            @foreach(var provider in Model.ExternalLogins){
+                                <button type="submit" class="btn btn-primary" style="width:150px"
+                                    name="provider" value="@provider.Name"
+                                    title="Login using your @provider.DisplayName account">@provider.DisplayName</button>
+                            }
+                        </div>
+                    </form>
+                }
+            }
         </div>
-        <div asp-validation-summary="All"></div>
-        <div class="mb-3">
-            <label asp-for="UserName"></label>
-            <input asp-for="UserName" class="form-control" />
-            <span asp-validation-for="UserName" class="text-danger"></span>
-        </div>
-        <div class="mb-3">
-            <label asp-for="PasswordHash">Password</label>
-            <input asp-for="PasswordHash" class="form-control" type="password" />
-            <span asp-validation-for="PasswordHash" class="text-danger"></span>
-        </div>
-        <button type="submit" class="btn btn-primary" style="width:150px">Login</button>
-        <a asp-controller="Home" asp-action="Index" class="btn btn-secondary" style="width:150px">
-            Back to Home
-        </a>
     </div>
-</form>
+</div>
+

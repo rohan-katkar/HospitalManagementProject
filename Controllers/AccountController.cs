@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 using System.Text;
 
 namespace HospitalManagement.Controllers
@@ -19,7 +20,7 @@ namespace HospitalManagement.Controllers
             roleManager = roleMgr;
         }
 
-        // Registration Starts
+        #region Registration
         //GET
         public IActionResult Register()
         {
@@ -58,22 +59,104 @@ namespace HospitalManagement.Controllers
             }
             return View();
         }
-        // Registration Ends
+        #endregion
 
-        // Authentication Starts
+        #region Authentication 
         //GET
-        public IActionResult Login()
+        public async Task<IActionResult> Login(string? returnUrl)
         {
-            return View();
+            LoginViewModel model = new LoginViewModel()
+            {
+                ReturnUrl = returnUrl,
+                ExternalLogins = (await signInManager.GetExternalAuthenticationSchemesAsync()).ToList()
+            };
+            return View(model);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Login(User user)
+        public IActionResult ExternalLogin(string provider, string returnUrl)
+        {
+            var redirectUrl = Url.Action("ExternalLoginCallback", "Account",
+                                            new { ReturnUrl = returnUrl });
+
+            var properties = signInManager.ConfigureExternalAuthenticationProperties(provider, redirectUrl);
+            return new ChallengeResult(provider, properties);
+        }
+
+        public async Task<IActionResult> ExternalLoginCallback(string? returnUrl, string? remoteError = null)
+        {
+            returnUrl = returnUrl ?? Url.Content("~/");
+            LoginViewModel model = new LoginViewModel()
+            {
+                ReturnUrl = returnUrl,
+                ExternalLogins = (await signInManager.GetExternalAuthenticationSchemesAsync()).ToList()
+            };
+            try
+            {
+                if (remoteError != null)
+                {
+                    throw new Exception($"Error from external provider: {remoteError}");
+                    //return View("Login", model);
+                }
+
+                var info = await signInManager.GetExternalLoginInfoAsync();
+                if (info == null)
+                {
+                    throw new Exception("Error loading external login information");
+                    //return View("Login", model);
+                }
+
+                var signInResult = await signInManager.ExternalLoginSignInAsync(info.LoginProvider, info.ProviderKey, false, true);
+
+                if (signInResult.Succeeded)
+                {
+                    return LocalRedirect(returnUrl);
+                }
+                else
+                {
+                    var email = info.Principal.FindFirstValue(ClaimTypes.Email);
+                    if (email != null)
+                    {
+                        var user = await userManager.FindByEmailAsync(email);
+
+                        if (user == null)
+                        {
+                            user = new User
+                            {
+                                UserName = info.Principal.FindFirstValue(ClaimTypes.Email),
+                                Email = info.Principal.FindFirstValue(ClaimTypes.Email),
+                                FirstName = info.Principal.FindFirstValue(ClaimTypes.GivenName),
+                                LastName = info.Principal.FindFirstValue(ClaimTypes.Surname)
+                            };
+
+                            await userManager.CreateAsync(user);
+                        }
+
+                        await userManager.AddLoginAsync(user, info);
+                        await signInManager.SignInAsync(user, false);
+
+                        return LocalRedirect(returnUrl);
+                    }
+
+                    ViewBag.ErrorTitle = $"Email claim not received from: {info.LoginProvider}";
+                    ViewBag.ErrorMessage = $"Please contact support";
+                }
+            }
+            catch(Exception ex)
+            {
+                ViewBag.Message = ex.Message;
+            }
+            return View(model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Login(string username, string password)
         {
             try
             {
-                var result = await signInManager.PasswordSignInAsync(user.UserName, user.PasswordHash, false, false);
+                var result = await signInManager.PasswordSignInAsync(username, password, false, false);
                 if (result.Succeeded)
                 { 
                     return RedirectToAction("Index", "Home");
@@ -101,9 +184,9 @@ namespace HospitalManagement.Controllers
             await signInManager.SignOutAsync();
             return RedirectToAction("Index", "Home");
         }
-        // Authentication Ends
+        #endregion
 
-        // Authorization Starts
+        #region Authorization
         //GET
         public IActionResult CreateRole()
         {
@@ -224,7 +307,7 @@ namespace HospitalManagement.Controllers
 
             return View(userRoleMapping);
         }
-        // Authorization Ends
+        #endregion
 
         public IActionResult AccessDenied()
         {
