@@ -84,7 +84,7 @@ namespace HospitalManagement.Controllers
             return new ChallengeResult(provider, properties);
         }
 
-        public async Task<IActionResult> ExternalLoginCallback(string? returnUrl, string? remoteError = null)
+        public async Task<IActionResult> ExternalLoginCallback(string? returnUrl, string? remoteError)
         {
             returnUrl = returnUrl ?? Url.Content("~/");
             LoginViewModel model = new LoginViewModel()
