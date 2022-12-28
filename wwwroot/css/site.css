@@ -1,18 +1,29 @@
 html {
-  font-size: 14px;
+    font-size: 14px;
 }
 
 @media (min-width: 768px) {
-  html {
-    font-size: 16px;
-  }
+    html {
+        font-size: 16px;
+    }
 }
 
 html {
-  position: relative;
-  min-height: 100%;
+    position: relative;
+    min-height: 100%;
 }
 
 body {
-  margin-bottom: 60px;
+    margin-bottom: 60px;
+    background-color: aliceblue;
+    /*background-image: url('https://media.fshoq.com/images/209/doctor-during-the-surgeon-in-hospital-209-medium.jpg')*/
+    /*background-image: url('https://c.pxhere.com/images/d1/67/8d05a14fde605a0312a78ef9d9c4-1451109.jpg!d')*/
+}
+
+footer {
+    background-color: white;
+}
+
+.btn:hover {
+    font-weight: bold;
 }
