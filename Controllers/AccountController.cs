@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Identity.Client;
 using System.Security.Claims;
 using System.Text;
 
@@ -34,28 +35,38 @@ namespace HospitalManagement.Controllers
             try
             {
                 var UserFromDb = await userManager.FindByEmailAsync(user.Email);
-                if(UserFromDb == null)
+                if (UserFromDb != null)
                 {
-                    // Comment below line if not required
-                    //user.Id = Guid.NewGuid().ToString();
-                    user.EmailConfirmed = true;
+                    throw new Exception("User with this username already present");
+                }
+                // Comment below line if not required
+                // user.Id = Guid.NewGuid().ToString();
+                    
+                // Uncomment if email confirmed not required
+                // user.EmailConfirmed = true;
 
-                    IdentityResult result = await userManager.CreateAsync(user, user.PasswordHash);
-                    if (result.Succeeded)
-                        ViewBag.Message = "User created successfully";
-                    else
-                    {
-                        throw new Exception(GetErrorList(result.Errors));
-                    }
+                IdentityResult result = await userManager.CreateAsync(user, user.PasswordHash);
+
+                if (result.Succeeded)
+                {
+                    var token = await userManager.GenerateEmailConfirmationTokenAsync(user);
+                    var confirmationLink = Url.Action("ConfirmEmail", "Account",
+                                            new { UserId = user.Id, token = token }, Request.Scheme);
+
+                    ViewBag.ErrorTitle = "Registration Success";
+                    ViewBag.ErrorMessage = "Before you can login, please confirm your email, by clicking the confirmation link we have emailed you";
+
+                    return View(viewName: "ImportantInfo");
+                    //ViewBag.Message = "User created successfully";
                 }
                 else
                 {
-                    ViewBag.Message = "User already present";
+                    throw new Exception(GetErrorList(result.Errors));
                 }
             }
             catch(Exception ex)
             {
-                ViewBag.Message = ex.Message;
+                ModelState.AddModelError(string.Empty, ex.Message);
             }
             return View();
         }
@@ -73,6 +84,7 @@ namespace HospitalManagement.Controllers
             return View(model);
         }
 
+        #region ExternalLogin
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult ExternalLogin(string provider, string returnUrl)
@@ -107,6 +119,18 @@ namespace HospitalManagement.Controllers
                     //return View("Login", model);
                 }
 
+                var email = info.Principal.FindFirstValue(ClaimTypes.Email);
+                User user = null;
+
+                if(email != null)
+                {
+                    user = await userManager.FindByEmailAsync(email);
+                    if(user != null && !user.EmailConfirmed)
+                    {
+                        throw new Exception("Email not confirmed yet");
+                    }
+                }
+
                 var signInResult = await signInManager.ExternalLoginSignInAsync(info.LoginProvider, info.ProviderKey, false, true);
 
                 if (signInResult.Succeeded)
@@ -115,10 +139,9 @@ namespace HospitalManagement.Controllers
                 }
                 else
                 {
-                    var email = info.Principal.FindFirstValue(ClaimTypes.Email);
                     if (email != null)
                     {
-                        var user = await userManager.FindByEmailAsync(email);
+                        user = await userManager.FindByEmailAsync(email);
 
                         if (user == null)
                         {
@@ -131,6 +154,15 @@ namespace HospitalManagement.Controllers
                             };
 
                             await userManager.CreateAsync(user);
+
+                            var token = await userManager.GenerateEmailConfirmationTokenAsync(user);
+                            var confirmationLink = Url.Action("ConfirmEmail", "Account",
+                                                    new { UserId = user.Id, token = token }, Request.Scheme);
+
+                            ViewBag.ErrorTitle = "Registration Success";
+                            ViewBag.ErrorMessage = "Before you can login, please confirm your email, by clicking the confirmation link we have emailed you";
+
+                            return View("ImportantInfo", model);
                         }
 
                         await userManager.AddLoginAsync(user, info);
@@ -145,17 +177,63 @@ namespace HospitalManagement.Controllers
             }
             catch(Exception ex)
             {
-                ViewBag.Message = ex.Message;
+                ModelState.AddModelError(string.Empty, ex.Message);
+                //ViewBag.Message = ex.Message;
             }
-            return View(model);
+            return View("Login", model);
         }
 
+        public async Task<IActionResult> ConfirmEmail(string userId, string token)
+        {
+            if(userId == null || token == null)
+            {
+                return RedirectToAction("Index", "Home");
+            }
+            try
+            {
+                var user = await userManager.FindByIdAsync(userId);
+                if (user == null)
+                {
+                    throw new Exception($"The User ID {userId} is invalid");
+                }
+                var result = await userManager.ConfirmEmailAsync(user, token);
+
+                if (result.Succeeded)
+                {
+                    return View(viewName: "ConfirmEmail");
+                }
+                else
+                {
+                    ViewBag.ErrorTitle = "Email could not be confirmed";
+                    return View(viewName: "ImportantInfo");
+                }
+            }
+            catch(Exception ex)
+            {
+                ModelState.AddModelError(string.Empty, ex.Message);
+            }
+            return View(viewName: "Login");
+        }
+
+        #endregion
+        
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Login(string username, string password)
         {
+            LoginViewModel model = new LoginViewModel()
+            {
+                //ReturnUrl = returnUrl,
+                ExternalLogins = (await signInManager.GetExternalAuthenticationSchemesAsync()).ToList()
+            };
             try
             {
+                var user = await userManager.FindByNameAsync(username);
+                if (user != null && !user.EmailConfirmed)
+                {
+                    throw new Exception("Email not confirmed yet");
+                }
+
                 var result = await signInManager.PasswordSignInAsync(username, password, false, false);
                 if (result.Succeeded)
                 { 
@@ -163,20 +241,15 @@ namespace HospitalManagement.Controllers
                 }
                 else
                 {
-                    StringBuilder sb = new StringBuilder();
-                    sb.Append("Login Failed\r\n");
-                    if (result.IsNotAllowed)
-                        sb.Append("User is not allowed, please confirm your email");
-
-                    throw new Exception(sb.ToString());
+                    throw new Exception("Login Failed");
                 }
             }
             catch(Exception ex)
             {
-                ViewBag.Message = ex.Message;
+                ModelState.AddModelError(string.Empty, ex.Message);
             }
 
-            return View();
+            return View(model);
         }
 
         public async Task<IActionResult> LogOut()
@@ -309,6 +382,97 @@ namespace HospitalManagement.Controllers
         }
         #endregion
 
+        #region Forgot and Reset Password
+        public IActionResult ForgotPassword()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ForgotPassword(ForgotPasswordViewModel model)
+        {
+            try
+            {
+                if (ModelState.IsValid)
+                {
+                    if (model.Email != null)
+                    {
+                        var user = await userManager.FindByEmailAsync(model.Email);
+                        if (user == null)
+                        {
+                            throw new Exception("User not found");
+                        }
+
+                        var token = await userManager.GeneratePasswordResetTokenAsync(user);
+                        var confirmationLink = Url.Action("ResetPassword", "Account",
+                                                    new { Email = user.Email, token = token }, Request.Scheme);
+
+                        ViewBag.ErrorTitle = "Link Generation Success";
+                        ViewBag.ErrorMessage = "You can reset the password by clicking the confirmation link we have emailed you";
+
+                        return View(viewName: "ImportantInfo");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError(string.Empty, ex.Message);
+            }
+            return View(model);
+        }
+
+        public IActionResult ResetPassword(string token, string email)
+        {
+            try
+            {
+                if(token == null || email == null)
+                {
+                    throw new Exception("Invalid password reset token");
+                }
+            }
+            catch(Exception ex)
+            {
+                ModelState.AddModelError(string.Empty, ex.Message);
+            }
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ResetPassword(PasswordResetViewModel model)
+        {
+            try
+            {
+                if (ModelState.IsValid)
+                {
+                    var user = await userManager.FindByEmailAsync(model.Email);
+                    if (user != null)
+                    {
+                        var result = await userManager.ResetPasswordAsync(user, model.Token, model.Password);
+                        if (result.Succeeded)
+                        {
+                            return View(viewName: "ResetPasswordConfirmation");
+                        }
+                        else
+                        {
+                            foreach (var error in result.Errors)
+                            {
+                                ModelState.AddModelError(string.Empty, error.Description);
+                            }
+                        }
+                    }
+                    return View(viewName: "ResetPasswordConfirmation");
+                }
+            }
+            catch(Exception ex)
+            {
+                ModelState.AddModelError(string.Empty, ex.Message);
+            }
+
+            return View(model);
+        }
+
+        #endregion
+
         public IActionResult AccessDenied()
         {
             return View();
@@ -323,6 +487,11 @@ namespace HospitalManagement.Controllers
                 sb.Append("\r\n");
             }
             return sb.ToString();
+        }
+
+        public IActionResult ImportantInfo()
+        {
+            return View();
         }
     }
 }
