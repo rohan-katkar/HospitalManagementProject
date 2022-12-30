@@ -13,12 +13,14 @@ namespace HospitalManagement.Controllers
         private UserManager<User> userManager { get; set; }
         private SignInManager<User> signInManager { get; set; }
         private RoleManager<UserRole> roleManager { get; set; }
+        private ILogger<AccountController> _logger { get; set; }
 
-        public AccountController(UserManager<User> uMgr, SignInManager<User> signMgr, RoleManager<UserRole> roleMgr)
+        public AccountController(UserManager<User> uMgr, SignInManager<User> signMgr, RoleManager<UserRole> roleMgr, ILogger<AccountController> logger)
         {
             userManager = uMgr;
             signInManager = signMgr;
             roleManager = roleMgr;
+            _logger = logger;
         }
 
         #region Registration
@@ -159,6 +161,8 @@ namespace HospitalManagement.Controllers
                             var confirmationLink = Url.Action("ConfirmEmail", "Account",
                                                     new { UserId = user.Id, token = token }, Request.Scheme);
 
+                            _logger.Log(Microsoft.Extensions.Logging.LogLevel.Information, confirmationLink);
+
                             ViewBag.ErrorTitle = "Registration Success";
                             ViewBag.ErrorMessage = "Before you can login, please confirm your email, by clicking the confirmation link we have emailed you";
 
@@ -234,13 +238,16 @@ namespace HospitalManagement.Controllers
                     throw new Exception("Email not confirmed yet");
                 }
 
-                var result = await signInManager.PasswordSignInAsync(username, password, false, false);
+                var result = await signInManager.PasswordSignInAsync(username, password, false, true);
                 if (result.Succeeded)
                 { 
                     return RedirectToAction("Index", "Home");
                 }
                 else
                 {
+                    if (result.IsLockedOut)
+                        return RedirectToAction("AccountLockout");
+
                     throw new Exception("Login Failed");
                 }
             }
@@ -407,6 +414,8 @@ namespace HospitalManagement.Controllers
                         var confirmationLink = Url.Action("ResetPassword", "Account",
                                                     new { Email = user.Email, token = token }, Request.Scheme);
 
+                        _logger.Log(Microsoft.Extensions.Logging.LogLevel.Information, confirmationLink);
+
                         ViewBag.ErrorTitle = "Link Generation Success";
                         ViewBag.ErrorMessage = "You can reset the password by clicking the confirmation link we have emailed you";
 
@@ -448,6 +457,11 @@ namespace HospitalManagement.Controllers
                     if (user != null)
                     {
                         var result = await userManager.ResetPasswordAsync(user, model.Token, model.Password);
+                        if (user.LockoutEnabled)
+                        {
+                            await userManager.SetLockoutEndDateAsync(user, DateTimeOffset.UtcNow);
+                        }
+
                         if (result.Succeeded)
                         {
                             return View(viewName: "ResetPasswordConfirmation");
@@ -472,6 +486,11 @@ namespace HospitalManagement.Controllers
         }
 
         #endregion
+
+        public IActionResult AccountLockout()
+        {
+            return View();
+        }
 
         public IActionResult AccessDenied()
         {
