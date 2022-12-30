@@ -1,5 +1,6 @@
 using HospitalManagement.Data;
 using HospitalManagement.Models;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -13,7 +14,8 @@ builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseSqlSer
 builder.Services.AddIdentity<User, UserRole>(options =>
     {
         options.SignIn.RequireConfirmedEmail = true;
-    }).AddEntityFrameworkStores<ApplicationDbContext>();
+    }).AddEntityFrameworkStores<ApplicationDbContext>()
+    .AddDefaultTokenProviders();
 
 builder.Services.AddAuthentication()
     .AddGoogle(options =>
