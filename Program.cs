@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 var builder = WebApplication.CreateBuilder(args);
 
 // Change the name of repository here
-builder.Services.AddTransient<IUserRepository, MockUserRepository>();
+builder.Services.AddSingleton<IUserRepository, MockUserRepository>();
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
