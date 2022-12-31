@@ -1,7 +1,11 @@
 using HospitalManagement.Data;
+using HospitalManagement.Models;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Change the name of repository here
+builder.Services.AddTransient<IUserRepository, MockUserRepository>();
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
