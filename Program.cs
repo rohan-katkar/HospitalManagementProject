@@ -2,12 +2,11 @@ using HospitalManagement.Data;
 using HospitalManagement.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging.Configuration;
+using NLog.Extensions.Logging;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Logging.ClearProviders();
-builder.Logging.AddConsole();
+builder.Logging.AddNLog();
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();

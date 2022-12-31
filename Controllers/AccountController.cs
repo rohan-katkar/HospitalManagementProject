@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Identity.Client;
 using System.Security.Claims;
 using System.Text;
 
@@ -122,7 +121,7 @@ namespace HospitalManagement.Controllers
                 }
 
                 var email = info.Principal.FindFirstValue(ClaimTypes.Email);
-                User user = null;
+                User? user = null;
 
                 if(email != null)
                 {
@@ -414,7 +413,7 @@ namespace HospitalManagement.Controllers
                         var confirmationLink = Url.Action("ResetPassword", "Account",
                                                     new { Email = user.Email, token = token }, Request.Scheme);
 
-                        _logger.Log(Microsoft.Extensions.Logging.LogLevel.Information, confirmationLink);
+                        _logger.LogInformation(confirmationLink);
 
                         ViewBag.ErrorTitle = "Link Generation Success";
                         ViewBag.ErrorMessage = "You can reset the password by clicking the confirmation link we have emailed you";
