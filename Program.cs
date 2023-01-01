@@ -2,6 +2,7 @@ using HospitalManagement.Data;
 using HospitalManagement.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 using NLog.Extensions.Logging;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -26,11 +27,15 @@ builder.Services.AddIdentity<User, UserRole>(options =>
     }).AddEntityFrameworkStores<ApplicationDbContext>()
     .AddDefaultTokenProviders();
 
+// Please change the name of the file taken from google cloud.
+var secretFile = File.ReadAllText("g_client_file.json");
+dynamic secretClass = JsonConvert.DeserializeObject<dynamic>(secretFile);
+
 builder.Services.AddAuthentication()
     .AddGoogle(options =>
     {
-        options.ClientId = "354281485127-n501qe5q00sh0qm4r7as910dt1hbdl72.apps.googleusercontent.com";
-        options.ClientSecret = "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";
+        options.ClientId = secretClass.web.client_id;
+        options.ClientSecret = secretClass.web.client_secret;
     });
 
 var app = builder.Build();
